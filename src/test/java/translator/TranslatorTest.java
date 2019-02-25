@@ -1,12 +1,12 @@
 package translator;
 
-import static org.junit.Assert.assertTrue;
+import com.goxr3plus.speech.translator.GoogleTranslate;
+import com.goxr3plus.speech.translator.data.SingleWordData;
+import org.junit.Test;
 
 import java.io.IOException;
 
-import org.junit.Test;
-
-import com.goxr3plus.speech.translator.GoogleTranslate;
+import static org.junit.Assert.assertEquals;
 
 public class TranslatorTest {
 	
@@ -14,9 +14,10 @@ public class TranslatorTest {
 	public void testString() throws IOException {
 		
 		String translatedText = GoogleTranslate.translate("Hola . Buenos días");
-		String expecetedText = "Hi . Good Morning";
-		
-		System.out.println(translatedText);
-		assertTrue(translatedText.equals(expecetedText));
+		String expectedText = "Hi . Good Morning";
+		assertEquals(translatedText, expectedText);
+
+		SingleWordData a = GoogleTranslate.singleWordData("fa", "ridge");
+		System.out.println(a);
 	}
 }

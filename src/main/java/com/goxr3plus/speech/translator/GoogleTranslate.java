@@ -1,5 +1,12 @@
 package com.goxr3plus.speech.translator;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.goxr3plus.speech.translator.data.SingleWordData;
+import com.goxr3plus.speech.translator.data.WordDefinitions;
+import com.goxr3plus.speech.translator.data.WordTranslations;
+import org.json.JSONArray;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
@@ -10,8 +17,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import org.json.JSONArray;
 
 /***************************************************************************************************************
  * An API for a Google Translation service in Java. Please Note: This API is unofficial and is not supported by Google. Subject to breakage at any
@@ -26,6 +31,7 @@ public final class GoogleTranslate { //Class marked as final since all methods a
 	 * URL to query for Translation
 	 */
 	private static final String GOOGLE_TRANSLATE_URL = "http://translate.google.com/translate_a/single";
+	private final static Gson gson = new Gson();
 	
 	/**
 	 * Private to prevent instantiation
@@ -84,6 +90,41 @@ public final class GoogleTranslate { //Class marked as final since all methods a
 		sb.append(generateToken(text));
 		return sb.toString();
 	}
+
+	private static String generateSingleWordURL(String sourceLanguage, String targetLanguage,
+																							String text) throws UnsupportedEncodingException {
+		String encoded = URLEncoder.encode(text, "UTF-8"); //Encode
+		StringBuilder sb = new StringBuilder();
+		sb.append(GOOGLE_TRANSLATE_URL);
+		sb.append("?client=webapp"); //The client parameter
+		sb.append("&hl=en"); //The language of the UI?
+		sb.append("&sl="); //Source language
+		sb.append(sourceLanguage);
+		sb.append("&tl="); //Target language
+		sb.append(targetLanguage);
+
+		sb.append("&dt=at");//This parameters requests the translated text back.
+		//Other dt parameters request additional information such as pronunciation, and so on.
+		//TODO Modify API so that the user may request this additional information.
+		sb.append("&dt=bd");
+		sb.append("&dt=ex");
+		sb.append("&dt=ld");
+		sb.append("&dt=md");
+		sb.append("&dt=qc");
+		sb.append("&dt=rw");
+		sb.append("&dt=rm");
+		sb.append("&dt=ss");
+		sb.append("&dt=t");
+
+		sb.append("&ie=UTF-8"); //Input encoding
+		sb.append("&oe=UTF-8"); //Output encoding
+		sb.append("&source=sel");
+		sb.append("&q=");
+		sb.append(encoded);
+		sb.append("&tk="); //Token authentication parameter
+		sb.append(generateToken(text));
+		return sb.toString();
+	}
 	
 	/**
 	 * Automatically determines the language of the original text
@@ -115,6 +156,10 @@ public final class GoogleTranslate { //Class marked as final since all methods a
 	public static String translate(String text) throws IOException {
 		return translate(Locale.getDefault().getLanguage(), text);
 	}
+
+	public static SingleWordData singleWordData(String text) throws IOException {
+		return singleWordData(Locale.getDefault().getLanguage(), text);
+	}
 	
 	/**
 	 * Automatically detects language and translate to the targetLanguage. Allows Google to determine source language
@@ -130,6 +175,10 @@ public final class GoogleTranslate { //Class marked as final since all methods a
 	 */
 	public static String translate(String targetLanguage , String text) throws IOException {
 		return translate("auto", targetLanguage, text);
+	}
+
+	public static SingleWordData singleWordData(String targetLanguage, String text) throws IOException {
+		return singleWordData("auto", targetLanguage, text);
 	}
 	
 	/**
@@ -164,6 +213,34 @@ public final class GoogleTranslate { //Class marked as final since all methods a
 			trans.append(arr2.get(0).toString());
 		}
 		return trans.toString();//Returns the translation
+	}
+
+	public static SingleWordData singleWordData(String sourceLanguage, String targetLanguage,
+																							String text) throws IOException {
+		String urlText = generateSingleWordURL(sourceLanguage, targetLanguage, text);
+		URL url = new URL(urlText);
+		String rawData = urlToText(url);//Gets text from Google
+		if (rawData.length() == 0) {
+			return null;
+		}
+
+		final List<Object> parsedData = gson.fromJson(rawData, new TypeToken<List<Object>>() {
+		}.getType());
+		final SingleWordData result = new SingleWordData();
+		// I dont know what is the first element
+		// The second part has multiple parts: each part for one part of speech role.
+		if (parsedData.size() > 1 && parsedData.get(1) instanceof ArrayList) {
+			//noinspection unchecked
+			final WordTranslations wts = WordTranslations.parse((ArrayList<Object>) parsedData.get(1));
+			result.setTranslations(wts);
+		}
+		if (parsedData.size() > 12 && parsedData.get(12) instanceof ArrayList) {
+			//noinspection unchecked
+			final WordDefinitions wds = WordDefinitions.parse((ArrayList<Object>) parsedData.get(12));
+			System.out.println(wds);
+			result.setDefinitions(wds);
+		}
+		return result;
 	}
 	
 	/**
