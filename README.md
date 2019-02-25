@@ -21,9 +21,9 @@ https://jitpack.io/private#goxr3plus/java-google-speech-api
 >Step 2. Add the dependency
 ``` XML
 <dependency>
-   <groupId>com.github.goxr3plus</groupId>
+   <groupId>com.github.majidasgari</groupId>
    <artifactId>java-google-speech-api</artifactId>
-   <version>8.0.0</version> 
+   <version>8.1.0</version> 
 </dependency>
 ```
 
