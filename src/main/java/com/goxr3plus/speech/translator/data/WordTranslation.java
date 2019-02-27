@@ -27,11 +27,11 @@ public class WordTranslation {
     this.translation = translation;
   }
 
-  public double getFactor() {
+  public Double getFactor() {
     return factor;
   }
 
-  public void setFactor(double factor) {
+  public void setFactor(Double factor) {
     this.factor = factor;
   }
 

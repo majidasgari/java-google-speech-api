@@ -51,11 +51,11 @@ public class WordTranslationsForRole {
     this.word = word;
   }
 
-  public double getFactor() {
+  public Double getFactor() {
     return factor;
   }
 
-  public void setFactor(double factor) {
+  public void setFactor(Double factor) {
     this.factor = factor;
   }
 }
